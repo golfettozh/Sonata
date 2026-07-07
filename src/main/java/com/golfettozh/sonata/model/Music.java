@@ -18,5 +18,4 @@ public class Music {
     private String title;
     private String artist;
     private Double durationInMinutes;
-
 }

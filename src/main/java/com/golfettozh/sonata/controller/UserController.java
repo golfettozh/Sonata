@@ -10,6 +10,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 @RestController
 @RequestMapping("/users")
 @AllArgsConstructor
@@ -21,12 +23,25 @@ public class UserController {
     public ResponseEntity<UserResponseDTO> getUser(@PathVariable Long id) {
         User user = userService.findById(id);
 
-        if (user == null) {
-            return ResponseEntity.notFound().build();
-        }
+        UserResponseDTO response = new UserResponseDTO(
+                user.getId(),
+                user.getUsername(),
+                user.getEmail()
+        );
 
-        UserResponseDTO response = new UserResponseDTO(user.getId(), user.getUsername(), user.getEmail());
         return ResponseEntity.ok(response);
+    }
+
+    @GetMapping
+    public ResponseEntity<List<UserResponseDTO>> getAllUsers() {
+        List<User> users = userService.findAll();
+        List<UserResponseDTO> responses = users.stream().map(user -> new UserResponseDTO(
+                user.getId(),
+                user.getUsername(),
+                user.getEmail()
+        )).toList();
+
+        return ResponseEntity.ok(responses);
     }
 
     @PostMapping
@@ -41,5 +56,16 @@ public class UserController {
         );
 
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<UserResponseDTO> deleteUser(@Valid @PathVariable Long id) {
+        User deletedUser = userService.deleteById(id);
+        UserResponseDTO response = new UserResponseDTO(
+                deletedUser.getId(),
+                deletedUser.getUsername(),
+                deletedUser.getEmail()
+        );
+        return ResponseEntity.ok(response);
     }
 }

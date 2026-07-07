@@ -1,12 +1,19 @@
 package com.golfettozh.sonata.dto.request;
 
+
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+@JsonIgnoreProperties(ignoreUnknown = true)
 @Getter @Setter
+@NoArgsConstructor
+@AllArgsConstructor
 public class UserRequestDTO {
 
     @NotBlank(message = "O nome de usuário não pode estar em branco")
