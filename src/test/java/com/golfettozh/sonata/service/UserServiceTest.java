@@ -1,6 +1,7 @@
 package com.golfettozh.sonata.service;
 
 import com.golfettozh.sonata.dto.request.UserRequestDTO;
+import com.golfettozh.sonata.exception.ResourceNotFoundException;
 import com.golfettozh.sonata.model.User;
 import jakarta.persistence.EntityManager;
 import org.junit.jupiter.api.DisplayName;
@@ -27,8 +28,8 @@ public class UserServiceTest {
     }
 
     @Test
-    @DisplayName("Deve retornar o usuário do banco através do Service quando o ID existir")
-    void findById() {
+    @DisplayName("Should return user info if user exists and has a valid ID")
+    void shouldReturnUserInfoByIdWhenExist() {
         UserRequestDTO dto = new UserRequestDTO("testeuser", "teste@gmail.com", "1234567890");
         User savedUser = this.createUser(dto);
 
@@ -36,6 +37,20 @@ public class UserServiceTest {
 
         assertNotNull(result);
         assertEquals(savedUser.getId(), result.getId());
+        System.out.println("ID of newUser: " +savedUser.getId());
+    }
+
+    @Test
+    @DisplayName("Should throw ResourceNotFoundException if user does not exist")
+    void shouldThrowResourceNotFoundExceptionWhenUserDoesNotExist() {
+        Long idNonexistent  = 1L;
+
+        ResourceNotFoundException exception = assertThrows(
+                ResourceNotFoundException.class,
+                () -> userService.findById(idNonexistent)
+        );
+
+        assertEquals("User not found with id: " + idNonexistent, exception.getMessage());
     }
 
     private User createUser(UserRequestDTO userRequestDTO) {
@@ -46,6 +61,8 @@ public class UserServiceTest {
 
         this.entityManager.persist(newUser);
         this.entityManager.flush();
+        this.entityManager.clear();
+
         return newUser;
     }
 }

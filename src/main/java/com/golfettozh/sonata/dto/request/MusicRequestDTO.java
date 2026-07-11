@@ -1,13 +1,19 @@
 package com.golfettozh.sonata.dto.request;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
 import jakarta.validation.constraints.Size;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+@JsonIgnoreProperties(ignoreUnknown = true)
 @Getter @Setter
+@NoArgsConstructor
+@AllArgsConstructor
 public class MusicRequestDTO {
 
     @NotBlank(message = "O título não pode estar em branco")

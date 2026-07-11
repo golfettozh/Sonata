@@ -1,11 +1,11 @@
 package com.golfettozh.sonata.service;
 
 import com.golfettozh.sonata.dto.request.UserRequestDTO;
-import com.golfettozh.sonata.dto.response.UserResponseDTO;
 import com.golfettozh.sonata.model.User;
 import com.golfettozh.sonata.repository.UserRepository;
 import com.golfettozh.sonata.exception.ResourceNotFoundException;
 import lombok.AllArgsConstructor;
+import org.springframework.security.crypto.bcrypt.BCrypt;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -21,16 +21,18 @@ public class UserService {
         Objects.requireNonNull(dto, "Dados do usuário são obrigatórios");
 
         User user = new User();
+
         user.setUsername(dto.getUsername().trim());
         user.setEmail(dto.getEmail().trim().toLowerCase());
-        user.setPassword(dto.getPassword()); // TODO: Hash the password before saving (BCrypt)
-
+        user.setPassword(BCrypt.hashpw(dto.getPassword(), BCrypt.gensalt())); // TODO: Hash the password before saving (BCrypt)
+        System.out.println(user.getPassword()); // Print the hashed password for debugging purposes
         return userRepository.save(user);
     }
 
+    // No seu UserService.java:
     public User findById(Long id) {
         return userRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Usuario não cadastrado ou não encontrado"));
+                .orElseThrow(() -> new ResourceNotFoundException("Usuário não encontrado com o ID: " + id));
     }
 
     public List<User> findAll() {
