@@ -41,8 +41,6 @@ public class AuthenticationController {
         if (userRepository.findByEmail(data.email()) != null) {
             return ResponseEntity.badRequest().body("Email already in use");
         }
-
-
         
         String encryptedPassword = passwordEncoder.encode(data.password());
         User newUser = new User(data.email(), encryptedPassword, data.role());
