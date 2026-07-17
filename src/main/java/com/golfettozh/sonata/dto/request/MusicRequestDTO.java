@@ -5,26 +5,18 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
 import jakarta.validation.constraints.Size;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
-@Getter @Setter
-@NoArgsConstructor
-@AllArgsConstructor
-public class MusicRequestDTO {
+public record MusicRequestDTO(
+        @NotBlank(message = "O título não pode estar em branco")
+        @Size(min = 3, max = 50, message = "O título deve ter entre 3 e 50 caracteres")
+        String title,
 
-    @NotBlank(message = "O título não pode estar em branco")
-    @Size(min = 3, max = 50, message = "O título deve ter entre 3 e 50 caracteres")
-    private String title;
+        @NotBlank(message = "O nome do artista é obrigatório")
+        @Size(min = 3, max = 50, message = "O nome do artista deve ter entre 3 e 50 caracteres")
+        String artist,
 
-    @NotBlank(message = "O nome do artista é obrigatório")
-    @Size(min = 3, max = 50, message = "O nome do artista deve ter entre 3 e 50 caracteres")
-    private String artist;
-
-    @NotNull(message = "A duração da música é obrigatória")
-    @Positive(message = "A duração deve ser maior que zero")
-    private Double durationInMinutes;
-}
+        @NotNull(message = "A duração da música é obrigatória")
+        @Positive(message = "A duração deve ser maior que zero")
+        Double durationInMinutes
+) {}

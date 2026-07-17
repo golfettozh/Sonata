@@ -1,15 +1,20 @@
 package com.golfettozh.sonata.dto.response;
 
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import com.golfettozh.sonata.model.music.Music;
+import java.util.UUID;
 
-@Getter @Setter
-@NoArgsConstructor @AllArgsConstructor
-public class MusicResponseDTO {
-    private Long id;
-    private String title;
-    private String artist;
-    private Double durationInMinutes;
+public record MusicResponseDTO (
+        UUID id,
+        String title,
+        String artist,
+        Double durationInMinutes
+) {
+    public MusicResponseDTO(Music music) {
+        this(
+                music.getId(),
+                music.getTitle(),
+                music.getArtist(),
+                music.getDurationInMinutes()
+        );
+    }
 }

@@ -1,6 +1,8 @@
 package com.golfettozh.sonata.repository;
 
-import com.golfettozh.sonata.model.Music;
+import com.golfettozh.sonata.model.music.Music;
 import org.springframework.data.jpa.repository.JpaRepository;
 
-public interface MusicRepository extends JpaRepository<Music, Long> {}
+import java.util.UUID;
+
+public interface MusicRepository extends JpaRepository<Music, UUID> {}

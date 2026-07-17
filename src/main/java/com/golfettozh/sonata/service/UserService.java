@@ -1,7 +1,7 @@
 package com.golfettozh.sonata.service;
 
 import com.golfettozh.sonata.dto.request.UserRequestDTO;
-import com.golfettozh.sonata.model.User;
+import com.golfettozh.sonata.model.user.User;
 import com.golfettozh.sonata.repository.UserRepository;
 import com.golfettozh.sonata.exception.ResourceNotFoundException;
 import lombok.AllArgsConstructor;
@@ -10,6 +10,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Objects;
+import java.util.UUID;
 
 @Service
 @AllArgsConstructor
@@ -18,32 +19,29 @@ public class UserService {
     private final UserRepository userRepository;
 
     public User save(UserRequestDTO dto) {
-        Objects.requireNonNull(dto, "Dados do usuário são obrigatórios");
+        Objects.requireNonNull(dto, "Dado's do usuário são obrigatórios");
 
         User user = new User();
 
-        user.setUsername(dto.getUsername().trim());
-        user.setEmail(dto.getEmail().trim().toLowerCase());
-        user.setPassword(BCrypt.hashpw(dto.getPassword(), BCrypt.gensalt())); // TODO: Hash the password before saving (BCrypt)
-        System.out.println(user.getPassword()); // Print the hashed password for debugging purposes
+        user.setEmail(dto.email().toLowerCase());
+        user.setPassword(BCrypt.hashpw(dto.password(), BCrypt.gensalt()));
+        user.setRole(dto.role());
+
         return userRepository.save(user);
     }
 
-    // No seu UserService.java:
-    public User findById(Long id) {
+    public User findById(UUID id) {
         return userRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Usuário não encontrado com o ID: " + id));
+                .orElseThrow(() -> new ResourceNotFoundException(id.toString()));
     }
 
     public List<User> findAll() {
         return userRepository.findAll();
     }
 
-    public User deleteById(Long id) {
+    public void deleteById(UUID id) {
         User user = findById(id);
 
         userRepository.delete(user);
-
-        return user;
     }
 }

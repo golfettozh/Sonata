@@ -1,14 +1,20 @@
 package com.golfettozh.sonata.dto.response;
 
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import com.golfettozh.sonata.model.user.User;
+import com.golfettozh.sonata.model.user.UserRole;
 
-@Getter @Setter
-@NoArgsConstructor @AllArgsConstructor
-public class UserResponseDTO {
-    private Long id;
-    private String username;
-    private String email;
+import java.util.UUID;
+
+public record UserResponseDTO(
+        UUID id,
+        String email,
+        UserRole role
+) {
+    public UserResponseDTO(User user) {
+        this(
+                user.getId(),
+                user.getEmail(),
+                user.getRole()
+        );
+    }
 }

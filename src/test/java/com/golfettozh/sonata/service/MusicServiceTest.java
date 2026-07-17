@@ -1,17 +1,17 @@
 package com.golfettozh.sonata.service;
 
 import com.golfettozh.sonata.dto.request.MusicRequestDTO;
-import com.golfettozh.sonata.model.Music;
+import com.golfettozh.sonata.model.music.Music;
 import jakarta.persistence.EntityManager;
 import jakarta.transaction.Transactional;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
 
 import java.util.List;
+import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -35,7 +35,7 @@ class MusicServiceTest {
         MusicRequestDTO musicRequestDTO = new MusicRequestDTO("Song Title", "Artist Name", 3.5);
 
         Music musicSave = createMusic(musicRequestDTO);
-        Long idExisting = musicSave.getId();
+        UUID idExisting = musicSave.getId();
 
         musicService.deleteById(idExisting);
         entityManager.flush();
@@ -60,9 +60,9 @@ class MusicServiceTest {
 
     private Music createMusic(MusicRequestDTO musicRequestDTO) {
         Music newMusic = new Music();
-        newMusic.setTitle(musicRequestDTO.getTitle());
-        newMusic.setArtist(musicRequestDTO.getArtist());
-        newMusic.setDurationInMinutes(musicRequestDTO.getDurationInMinutes());
+        newMusic.setTitle(musicRequestDTO.title());
+        newMusic.setArtist(musicRequestDTO.artist());
+        newMusic.setDurationInMinutes(musicRequestDTO.durationInMinutes());
 
         this.entityManager.persist(newMusic);
         this.entityManager.flush();
