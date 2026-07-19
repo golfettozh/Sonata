@@ -1,6 +1,6 @@
 # Sonata
 
-Uma API RESTful construída com Spring Boot para gerenciar usuários e coleções de músicas. Esta aplicação fornece endpoints abrangentes para criar, recuperar, atualizar e deletar registros de usuários e músicas.
+Uma API RESTful de gerenciamento de músicas construída com Spring Boot. Sonata fornece uma solução completa de backend para gerenciar usuários e catálogos de música com autenticação baseada em JWT e controle de acesso por função.
 
 ## Índice
 
@@ -10,29 +10,33 @@ Uma API RESTful construída com Spring Boot para gerenciar usuários e coleçõe
 - [Instalação](#instalação)
 - [Configuração](#configuração)
 - [Executando a Aplicação](#executando-a-aplicação)
-- [Rotas da API](#rotas-da-api)
+- [Autenticação](#autenticação)
+- [Endpoints da API](#endpoints-da-api)
 - [Exemplos de Requisições](#exemplos-de-requisições)
 - [Banco de Dados](#banco-de-dados)
 - [Estrutura do Projeto](#estrutura-do-projeto)
+- [Desenvolvimento](#desenvolvimento)
 
 ## Visão Geral
 
-Sonata é uma API de gerenciamento de músicas que permite você:
-- Gerenciar contas de usuários com credenciais
-- Gerenciar um catálogo de músicas com detalhes das faixas
-- Realizar operações CRUD em ambas as entidades
-- Construído com Spring Boot 4.1.0 e Java 21
+Sonata é uma plataforma pronta para produção que oferece gerenciamento de músicas e possibilita:
+- Registro de usuários e autenticação baseada em JWT
+- Controle de acesso por função (ROLE_USER, ROLE_ARTIST, ROLE_ADMIN)
+- Gerenciamento completo de perfil de usuário
+- Gerenciamento de catálogo de música com operações CRUD completas
+- Endpoints seguros com integração de Spring Security
 
 ## Tecnologias
 
-- **Java 21** - Linguagem de programação
-- **Spring Boot 4.1.0** - Framework web
-- **Spring Security** - Autenticação e autorização
-- **Spring Data JPA** - ORM e abstração de banco de dados
-- **PostgreSQL** - Banco de dados principal
+- **Java 21** - Linguagem moderna da JVM com recursos de ponta
+- **Spring Boot 4.1.0** - Framework web de nível empresarial
+- **Spring Security** - Framework abrangente de autenticação e autorização
+- **Spring Data JPA** - Mapeamento objeto-relacional e acesso a dados
+- **JWT (JJWT 0.12.6)** - Tokens de autenticação sem estado
+- **PostgreSQL** - Banco de dados para produção
 - **H2 Database** - Banco de dados em memória para testes
-- **Lombok** - Geração de código padrão
-- **Maven** - Ferramenta de build
+- **Lombok** - Reduz código repetitivo
+- **Maven** - Gerenciamento de build e dependências
 
 ## Requisitos
 
@@ -50,27 +54,25 @@ git clone https://github.com/golfettozh/Sonata.git
 cd Sonata
 ```
 
-### 2. Instalar PostgreSQL
+### 2. Configurar PostgreSQL
 
 Certifique-se de que o PostgreSQL está instalado e executando no seu sistema.
 
-#### No Windows:
-```bash
-# Usando Chocolatey
+#### Windows (Chocolatey)
+```powershell
 choco install postgresql
 ```
 
-#### No macOS:
+#### macOS (Homebrew)
 ```bash
-# Usando Homebrew
 brew install postgresql@15
 brew services start postgresql@15
 ```
 
-#### No Linux:
+#### Linux (Ubuntu/Debian)
 ```bash
-# Ubuntu/Debian
 sudo apt-get install postgresql postgresql-contrib
+sudo systemctl start postgresql
 ```
 
 ### 3. Criar o Banco de Dados
@@ -79,13 +81,42 @@ sudo apt-get install postgresql postgresql-contrib
 psql -U postgres
 ```
 
-Depois no terminal do PostgreSQL:
+Depois no prompt do PostgreSQL:
 
 ```sql
 CREATE DATABASE sonata;
 ```
 
 ## Configuração
+
+### Variáveis de Ambiente
+
+Crie um arquivo `.env` na raiz do projeto com as seguintes variáveis:
+
+```env
+USER_DB=postgres
+PASSWORD_DB=sua_senha
+URL_DB=jdbc:postgresql://localhost:5432/sonata
+API_SECURITY_TOKEN_SECRET=sua_chave_jwt_secreta_aqui_faça_longa_e_aleatória
+```
+
+#### Definindo Variáveis de Ambiente
+
+**Windows (PowerShell):**
+```powershell
+$env:USER_DB = "postgres"
+$env:PASSWORD_DB = "sua_senha"
+$env:URL_DB = "jdbc:postgresql://localhost:5432/sonata"
+$env:API_SECURITY_TOKEN_SECRET = "sua_chave_jwt_secreta"
+```
+
+**macOS/Linux (Bash):**
+```bash
+export USER_DB=postgres
+export PASSWORD_DB=sua_senha
+export URL_DB=jdbc:postgresql://localhost:5432/sonata
+export API_SECURITY_TOKEN_SECRET=sua_chave_jwt_secreta
+```
 
 ### Propriedades da Aplicação
 
@@ -104,6 +135,10 @@ spring.profiles.active=dev
 spring.jpa.show-sql=true
 spring.jpa.hibernate.ddl-auto=update
 
+# Configuração de Segurança
+application.jwt.secret=change_this_secret_to_a_long_random_value
+application.jwt.token.secret=${API_SECURITY_TOKEN_SECRET}
+
 # Tratamento de Erros
 spring.web.error.include-stacktrace=never
 spring.web.error.include-message=never
@@ -119,36 +154,6 @@ spring.datasource.url=${URL_DB:jdbc:postgresql://localhost:5432/sonata}
 spring.datasource.driver-class-name=org.postgresql.Driver
 ```
 
-### Variáveis de Ambiente
-
-Você pode sobrescrever a configuração padrão do banco de dados usando variáveis de ambiente:
-
-- `USER_DB` - Nome de usuário do banco (padrão: `postgres`)
-- `PASSWORD_DB` - Senha do banco (padrão: `postgres`)
-- `URL_DB` - URL do banco (padrão: `jdbc:postgresql://localhost:5432/sonata`)
-
-#### Definindo Variáveis de Ambiente
-
-**No Windows (PowerShell):**
-```powershell
-$env:USER_DB = "seu_usuario"
-$env:PASSWORD_DB = "sua_senha"
-$env:URL_DB = "jdbc:postgresql://localhost:5432/sonata"
-```
-
-**No macOS/Linux (Bash):**
-```bash
-export USER_DB=seu_usuario
-export PASSWORD_DB=sua_senha
-export URL_DB=jdbc:postgresql://localhost:5432/sonata
-```
-
-### Configuração do Servidor
-
-- **Porta:** 8081 (configurável via `server.port`)
-- **Caminho de Contexto:** `/` (raiz)
-- **Perfis:** `dev` (padrão), `test` (para testes)
-
 ## Executando a Aplicação
 
 ### Usando Maven
@@ -160,14 +165,14 @@ mvn clean install
 # Executar a aplicação
 mvn spring-boot:run
 
-# Executar com um perfil específico
+# Executar com perfil específico
 mvn spring-boot:run -Dspring-boot.run.arguments="--spring.profiles.active=dev"
 ```
 
-### Usando Java Direto
+### Usando Java Diretamente
 
 ```bash
-# Depois de construir com Maven
+# Depois de construir
 java -jar target/Sonata-0.0.1-SNAPSHOT.jar
 ```
 
@@ -181,30 +186,96 @@ mvn test
 mvn test -Dtest=UserServiceTest
 ```
 
-A aplicação será iniciada em `http://localhost:8081`
+A aplicação iniciará em `http://localhost:8081`
 
-## Rotas da API
+## Autenticação
+
+Sonata usa JWT (JSON Web Tokens) para autenticação sem estado. Todos os endpoints protegidos requerem um token JWT válido no header `Authorization`.
+
+### Funções de Usuário
+
+- **ROLE_USER** - Usuário padrão com permissões básicas
+- **ROLE_ARTIST** - Conta de artista com permissões estendidas
+- **ROLE_ADMIN** - Conta administrativa com permissões completas
+
+Usuários podem ter múltiplas funções simultaneamente (ex: ROLE_ADMIN inclui permissões de ROLE_USER).
+
+## Endpoints da API
+
+A API é versionada em `/api/v1`. Todos os endpoints esperam e retornam JSON.
+
+### Endpoints de Autenticação
+
+#### Registrar Usuário
+
+**POST** `/api/v1/auth/register`
+
+Criar uma nova conta de usuário.
+
+**Corpo da Requisição:**
+```json
+{
+  "email": "usuario@example.com",
+  "password": "senhaSegura123",
+  "role": "ROLE_USER"
+}
+```
+
+**Resposta:**
+```
+200 OK
+```
+
+**Códigos de Status:**
+- `200 OK` - Usuário registrado com sucesso
+- `400 BAD REQUEST` - Requisição inválida ou email já em uso
+
+---
+
+#### Fazer Login
+
+**POST** `/api/v1/auth/login`
+
+Autenticar e receber um token JWT.
+
+**Corpo da Requisição:**
+```json
+{
+  "email": "usuario@example.com",
+  "password": "senhaSegura123"
+}
+```
+
+**Resposta:**
+```
+200 OK
+Header: Authorization: Bearer <jwt_token>
+```
+
+**Códigos de Status:**
+- `200 OK` - Autenticação bem-sucedida
+- `401 UNAUTHORIZED` - Credenciais inválidas
+
+---
 
 ### Endpoints de Usuários
 
-#### 1. Obter Todos os Usuários
+#### Obter Todos os Usuários
 
-**Endpoint:** `GET /users`
+**GET** `/api/v1/users`
 
-**Descrição:** Recupera uma lista de todos os usuários no sistema.
+Recuperar todos os usuários. Requer autenticação.
 
 **Resposta:**
 ```json
 [
   {
-    "id": 1,
-    "username": "john_doe",
-    "email": "john@example.com"
+    "id": "550e8400-e29b-41d4-a716-446655440001",
+    "email": "usuario1@example.com"
   },
   {
-    "id": 2,
-    "username": "jane_smith",
-    "email": "jane@example.com"
+    "id": "550e8400-e29b-41d4-a716-446655440002",
+    "email": "usuario2@example.com"
   }
 ]
 ```
@@ -213,109 +284,101 @@ A aplicação será iniciada em `http://localhost:8081`
 
 ---
 
-#### 2. Obter Usuário por ID
+#### Obter Usuário por ID
 
-**Endpoint:** `GET /users/{id}`
+**GET** `/api/v1/users/{id}`
 
-**Descrição:** Recupera um usuário específico pelo seu ID.
+Recuperar um usuário específico. Requer autenticação.
 
 **Parâmetros de Caminho:**
-- `id` (Long, obrigatório) - O ID do usuário
+- `id` (UUID, obrigatório) - ID do usuário
 
 **Resposta:**
 ```json
 {
-  "id": 1,
-  "username": "john_doe",
-  "email": "john@example.com"
+  "id": "550e8400-e29b-41d4-a716-446655440001",
+  "email": "usuario@example.com"
 }
 ```
 
 **Códigos de Status:**
 - `200 OK` - Usuário encontrado
 - `404 NOT FOUND` - Usuário não encontrado
+- `401 UNAUTHORIZED` - Token inválido ou ausente
 
 ---
 
-#### 3. Criar Usuário
+#### Criar Usuário
 
-**Endpoint:** `POST /users`
+**POST** `/api/v1/users`
 
-**Descrição:** Cria uma nova conta de usuário.
+Criar um novo usuário. Requer ROLE_ADMIN.
 
 **Corpo da Requisição:**
 ```json
 {
-  "username": "john_doe",
-  "email": "john@example.com",
-  "password": "senhaSegura123"
+  "email": "usuario@example.com",
+  "password": "senhaSegura123",
+  "role": "ROLE_ARTIST"
 }
 ```
-
-**Regras de Validação:**
-- `username` - Obrigatório, não pode estar vazio
-- `email` - Obrigatório, deve ser um email válido, deve ser único
-- `password` - Obrigatório, não pode estar vazio
 
 **Resposta:**
 ```json
 {
-  "id": 1,
-  "username": "john_doe",
-  "email": "john@example.com"
+  "id": "550e8400-e29b-41d4-a716-446655440001",
+  "email": "usuario@example.com"
 }
 ```
 
 **Códigos de Status:**
 - `201 CREATED` - Usuário criado com sucesso
-- `400 BAD REQUEST` - Erro de validação ou email já existe
-- `409 CONFLICT` - Email já registrado
+- `400 BAD REQUEST` - Erro de validação
+- `409 CONFLICT` - Email já existe
+- `403 FORBIDDEN` - Permissões insuficientes
 
 ---
 
-#### 4. Deletar Usuário
+#### Deletar Usuário
 
-**Endpoint:** `DELETE /users/{id}`
+**DELETE** `/api/v1/users/{id}`
 
-**Descrição:** Deleta um usuário pelo ID.
+Deletar um usuário. Requer ROLE_ADMIN.
 
 **Parâmetros de Caminho:**
-- `id` (Long, obrigatório) - O ID do usuário a deletar
+- `id` (UUID, obrigatório) - ID do usuário a deletar
 
 **Resposta:**
-```json
-{
-  "id": 1,
-  "username": "john_doe",
-  "email": "john@example.com"
-}
+```
+204 NO CONTENT
 ```
 
 **Códigos de Status:**
-- `200 OK` - Usuário deletado com sucesso
+- `204 NO CONTENT` - Usuário deletado com sucesso
 - `404 NOT FOUND` - Usuário não encontrado
+- `403 FORBIDDEN` - Permissões insuficientes
 
 ---
 
 ### Endpoints de Músicas
 
-#### 1. Obter Todas as Músicas
+#### Obter Todas as Músicas
 
-**Endpoint:** `GET /musics`
+**GET** `/api/v1/musics`
 
-**Descrição:** Recupera uma lista de todos os registros de músicas no catálogo.
+Recuperar todos os registros de música. Requer autenticação.
 
 **Resposta:**
 ```json
 [
   {
-    "id": 1,
+    "id": "550e8400-e29b-41d4-a716-446655440001",
     "title": "Bohemian Rhapsody",
     "artist": "Queen",
     "durationInMinutes": 5.55
   },
   {
-    "id": 2,
+    "id": "550e8400-e29b-41d4-a716-446655440002",
     "title": "Imagine",
     "artist": "John Lennon",
     "durationInMinutes": 3.03
@@ -327,19 +390,19 @@ A aplicação será iniciada em `http://localhost:8081`
 
 ---
 
-#### 2. Obter Música por ID
+#### Obter Música por ID
 
-**Endpoint:** `GET /musics/{id}`
+**GET** `/api/v1/musics/{id}`
 
-**Descrição:** Recupera um registro de música específico pelo seu ID.
+Recuperar um registro de música específico. Requer autenticação.
 
 **Parâmetros de Caminho:**
-- `id` (Long, obrigatório) - O ID da música
+- `id` (UUID, obrigatório) - ID da música
 
 **Resposta:**
 ```json
 {
-  "id": 1,
+  "id": "550e8400-e29b-41d4-a716-446655440001",
   "title": "Bohemian Rhapsody",
   "artist": "Queen",
   "durationInMinutes": 5.55
@@ -352,11 +415,11 @@ A aplicação será iniciada em `http://localhost:8081`
 
 ---
 
-#### 3. Criar Música
+#### Criar Música
 
-**Endpoint:** `POST /musics`
+**POST** `/api/v1/musics`
 
-**Descrição:** Adiciona um novo registro de música ao catálogo.
+Adicionar um novo registro de música. Requer ROLE_ARTIST ou ROLE_ADMIN.
 
 **Corpo da Requisição:**
 ```json
@@ -367,15 +430,10 @@ A aplicação será iniciada em `http://localhost:8081`
 }
 ```
 
-**Regras de Validação:**
-- `title` - Obrigatório, não pode estar vazio
-- `artist` - Obrigatório, não pode estar vazio
-- `durationInMinutes` - Obrigatório, deve ser um número positivo
-
 **Resposta:**
 ```json
 {
-  "id": 1,
+  "id": "550e8400-e29b-41d4-a716-446655440001",
   "title": "Bohemian Rhapsody",
   "artist": "Queen",
   "durationInMinutes": 5.55
@@ -385,31 +443,28 @@ A aplicação será iniciada em `http://localhost:8081`
 **Códigos de Status:**
 - `201 CREATED` - Música criada com sucesso
 - `400 BAD REQUEST` - Erro de validação
+- `403 FORBIDDEN` - Permissões insuficientes
 
 ---
 
-#### 4. Deletar Música
+#### Deletar Música
 
-**Endpoint:** `DELETE /musics/{id}`
+**DELETE** `/api/v1/musics/{id}`
 
-**Descrição:** Deleta um registro de música pelo ID.
+Deletar um registro de música. Requer ROLE_ARTIST ou ROLE_ADMIN.
 
 **Parâmetros de Caminho:**
-- `id` (Long, obrigatório) - O ID da música a deletar
+- `id` (UUID, obrigatório) - ID da música a deletar
 
 **Resposta:**
-```json
-{
-  "id": 1,
-  "title": "Bohemian Rhapsody",
-  "artist": "Queen",
-  "durationInMinutes": 5.55
-}
+```
+204 NO CONTENT
 ```
 
 **Códigos de Status:**
-- `200 OK` - Música deletada com sucesso
+- `204 NO CONTENT` - Música deletada com sucesso
 - `404 NOT FOUND` - Música não encontrada
+- `403 FORBIDDEN` - Permissões insuficientes
 
 ---
 
@@ -417,43 +472,43 @@ A aplicação será iniciada em `http://localhost:8081`
 
 ### Usando cURL
 
-#### Criar um Usuário
+#### Registrar Usuário
 
 ```bash
-curl -X POST http://localhost:8081/users \
+curl -X POST http://localhost:8081/api/v1/auth/register \
   -H "Content-Type: application/json" \
   -d '{
-    "username": "john_doe",
-    "email": "john@example.com",
+    "email": "joao@example.com",
+    "password": "senhaSegura123",
+    "role": "ROLE_USER"
+  }'
+```
+
+#### Fazer Login
+
+```bash
+curl -X POST http://localhost:8081/api/v1/auth/login \
+  -H "Content-Type: application/json" \
+  -d '{
+    "email": "joao@example.com",
     "password": "senhaSegura123"
   }'
 ```
 
-#### Obter Todos os Usuários
+#### Obter Todos os Usuários (com token JWT)
 
 ```bash
-curl -X GET http://localhost:8081/users \
+curl -X GET http://localhost:8081/api/v1/users \
+  -H "Authorization: Bearer seu_token_jwt_aqui" \
   -H "Accept: application/json"
 ```
 
-#### Obter Usuário por ID
+#### Criar Música
 
 ```bash
-curl -X GET http://localhost:8081/users/1 \
-  -H "Accept: application/json"
-```
-
-#### Deletar Usuário
-
-```bash
-curl -X DELETE http://localhost:8081/users/1
-```
-
-#### Criar um Registro de Música
-
-```bash
-curl -X POST http://localhost:8081/musics \
+curl -X POST http://localhost:8081/api/v1/musics \
   -H "Content-Type: application/json" \
+  -H "Authorization: Bearer seu_token_jwt_aqui" \
   -d '{
     "title": "Bohemian Rhapsody",
     "artist": "Queen",
@@ -464,58 +519,64 @@ curl -X POST http://localhost:8081/musics \
 #### Obter Todas as Músicas
 
 ```bash
-curl -X GET http://localhost:8081/musics \
-  -H "Accept: application/json"
-```
-
-#### Obter Música por ID
-
-```bash
-curl -X GET http://localhost:8081/musics/1 \
+curl -X GET http://localhost:8081/api/v1/musics \
+  -H "Authorization: Bearer seu_token_jwt_aqui" \
   -H "Accept: application/json"
 ```
 
 #### Deletar Música
 
 ```bash
-curl -X DELETE http://localhost:8081/musics/1
+curl -X DELETE http://localhost:8081/api/v1/musics/550e8400-e29b-41d4-a716-446655440001 \
+  -H "Authorization: Bearer seu_token_jwt_aqui"
 ```
 
 ### Usando Postman
 
-1. **Criar Coleção:** `Sonata API`
-2. **Criar Requisições:**
-   - Nome: `Criar Usuário`
-     - Método: `POST`
-     - URL: `http://localhost:8081/users`
-     - Corpo (JSON):
-       ```json
-       {
-         "username": "john_doe",
-         "email": "john@example.com",
-         "password": "senhaSegura123"
-       }
-       ```
+1. Crie uma coleção chamada `Sonata API`
+2. Configure variáveis de ambiente:
+   - `base_url`: http://localhost:8081/api/v1
+   - `token`: (será preenchida após login)
 
-   - Nome: `Obter Todos os Usuários`
-     - Método: `GET`
-     - URL: `http://localhost:8081/users`
+3. Crie as requisições:
 
-   - Nome: `Criar Música`
-     - Método: `POST`
-     - URL: `http://localhost:8081/musics`
-     - Corpo (JSON):
-       ```json
-       {
-         "title": "Bohemian Rhapsody",
-         "artist": "Queen",
-         "durationInMinutes": 5.55
-       }
-       ```
+**Registrar**
+- Método: `POST`
+- URL: `{{base_url}}/auth/register`
+- Corpo:
+  ```json
+  {
+    "email": "usuario@example.com",
+    "password": "senha123",
+    "role": "ROLE_USER"
+  }
+  ```
 
-   - Nome: `Obter Todas as Músicas`
-     - Método: `GET`
-     - URL: `http://localhost:8081/musics`
+**Login**
+- Método: `POST`
+- URL: `{{base_url}}/auth/login`
+- Corpo:
+  ```json
+  {
+    "email": "usuario@example.com",
+    "password": "senha123"
+  }
+  ```
+- Na seção de testes, adicione:
+  ```javascript
+  var jsonData = pm.response.json();
+  pm.environment.set("token", jsonData.token);
+  ```
+
+**Obter Todos os Usuários**
+- Método: `GET`
+- URL: `{{base_url}}/users`
+- Headers: `Authorization: Bearer {{token}}`
+
+**Obter Todas as Músicas**
+- Método: `GET`
+- URL: `{{base_url}}/musics`
+- Headers: `Authorization: Bearer {{token}}`
 
 ## Banco de Dados
 
@@ -525,37 +586,26 @@ curl -X DELETE http://localhost:8081/musics/1
 
 | Coluna | Tipo | Restrições | Descrição |
 |--------|------|-----------|-------------|
-| id | BIGINT | PRIMARY KEY, AUTO_INCREMENT | Identificador único do usuário |
-| username | VARCHAR | NOT NULL | Nome de exibição do usuário |
+| id | UUID | PRIMARY KEY | Identificador único do usuário |
 | email | VARCHAR | NOT NULL, UNIQUE | Endereço de email do usuário |
-| password | VARCHAR | NOT NULL | Senha do usuário (criptografada) |
+| password | VARCHAR | NOT NULL | Senha criptografada |
+| role | VARCHAR | NOT NULL | Função do usuário (ROLE_USER, ROLE_ARTIST, ROLE_ADMIN) |
 
 #### Tabela Músicas
 
 | Coluna | Tipo | Restrições | Descrição |
 |--------|------|-----------|-------------|
-| id | BIGINT | PRIMARY KEY, AUTO_INCREMENT | Identificador único da música |
+| id | UUID | PRIMARY KEY | Identificador único da música |
 | title | VARCHAR | NOT NULL | Título da faixa |
 | artist | VARCHAR | NOT NULL | Nome do artista |
-| durationInMinutes | DOUBLE | NOT NULL | Duração da faixa em minutos |
+| durationInMinutes | DOUBLE | NOT NULL | Duração em minutos |
 
 ### Características do Banco de Dados
 
-- **Auto-DDL:** Hibernate está configurado com `ddl-auto=update`, que cria/atualiza automaticamente as tabelas
-- **Connection Pooling:** Spring Boot configura o pool de conexões automaticamente
-- **Gerenciamento de Transações:** Todas as operações de banco são gerenciadas por transação pelo Spring
-
-### Acessando Console H2 (Desenvolvimento)
-
-Quando executado em modo de desenvolvimento, você pode acessar o console H2 em:
-```
-http://localhost:8081/h2-console
-```
-
-**Credenciais Padrão:**
-- URL: `jdbc:h2:mem:testdb`
-- Usuário: `sa`
-- Senha: (vazio)
+- **Auto-DDL:** Hibernate configurado com `ddl-auto=update`, gerencia automaticamente o schema
+- **Connection Pooling:** HikariCP configurado pelo Spring Boot
+- **Gerenciamento de Transações:** Todas as operações gerenciadas por transação pelo Spring
+- **Geração de UUID:** Geração automática de UUID para todos os IDs
 
 ## Estrutura do Projeto
 
@@ -565,98 +615,60 @@ Sonata/
 │   ├── main/
 │   │   ├── java/com/golfettozh/sonata/
 │   │   │   ├── controller/
+│   │   │   │   ├── AuthenticationController.java
 │   │   │   │   ├── UserController.java
 │   │   │   │   └── MusicController.java
 │   │   │   ├── service/
 │   │   │   │   ├── UserService.java
-│   │   │   │   └── MusicService.java
+│   │   │   │   ├── MusicService.java
+│   │   │   │   └── AuthorizationService.java
 │   │   │   ├── model/
-│   │   │   │   ├── User.java
-│   │   │   │   └── Music.java
+│   │   │   │   ├── user/
+│   │   │   │   │   ├── User.java
+│   │   │   │   │   └── UserRole.java
+│   │   │   │   └── music/
+│   │   │   │       └── Music.java
 │   │   │   ├── repository/
 │   │   │   │   ├── UserRepository.java
 │   │   │   │   └── MusicRepository.java
 │   │   │   ├── dto/
 │   │   │   │   ├── request/
+│   │   │   │   │   ├── AuthenticationRequestDTO.java
+│   │   │   │   │   ├── RegisterRequestDTO.java
 │   │   │   │   │   ├── UserRequestDTO.java
 │   │   │   │   │   └── MusicRequestDTO.java
 │   │   │   │   └── response/
 │   │   │   │       ├── UserResponseDTO.java
 │   │   │   │       └── MusicResponseDTO.java
+│   │   │   ├── infra/
+│   │   │   │   └── security/
+│   │   │   │       └── SecurityConfiguration.java
 │   │   │   ├── exception/
-│   │   │   │   ├── GlobalExceptionHandler.java
 │   │   │   │   └── ResourceNotFoundException.java
 │   │   │   └── SonataApplication.java
 │   │   └── resources/
 │   │       ├── application.properties
-│   │       └── application-dev.properties
+│   │       ├── application-dev.properties
+│   │       └── application-test.properties
 │   └── test/
 │       ├── java/com/golfettozh/sonata/
-│       │   ├── service/
-│       │   │   ├── UserServiceTest.java
-│       │   │   └── MusicServiceTest.java
-│       │   └── SonataApplicationTests.java
+│       │   └── ...
 │       └── resources/
 │           └── application-test.properties
+├── .env
 ├── pom.xml
 └── README.pt-BR.md
 ```
 
-## Descrição dos Componentes
+### Visão Geral dos Componentes
 
-### Controladores
-- **UserController:** Trata todas as requisições HTTP relacionadas ao gerenciamento de usuários
-- **MusicController:** Trata todas as requisições HTTP relacionadas ao gerenciamento do catálogo de músicas
-
-### Serviços
-- **UserService:** Lógica de negócio para operações de usuário
-- **MusicService:** Lógica de negócio para operações de música
-
-### Repositórios
-- **UserRepository:** Camada de acesso a dados da entidade User (estende JpaRepository)
-- **MusicRepository:** Camada de acesso a dados da entidade Music (estende JpaRepository)
-
-### DTOs (Objetos de Transferência de Dados)
-- **DTOs de Requisição:** Usados para requisições de API recebidas
-- **DTOs de Resposta:** Usados para respostas de API saintes
-
-### Tratamento de Exceções
-- **GlobalExceptionHandler:** Tratamento centralizado de exceções para toda a aplicação
-- **ResourceNotFoundException:** Lançada quando um recurso solicitado não é encontrado
-
-## Tratamento de Erros
-
-A aplicação implementa tratamento global de exceções. Respostas de erro comuns:
-
-### 400 Bad Request
-```json
-{
-  "timestamp": "2024-01-15T10:30:00Z",
-  "status": 400,
-  "error": "Bad Request",
-  "message": "Parâmetros de requisição inválidos"
-}
-```
-
-### 404 Not Found
-```json
-{
-  "timestamp": "2024-01-15T10:30:00Z",
-  "status": 404,
-  "error": "Not Found",
-  "message": "Recurso não encontrado"
-}
-```
-
-### 500 Internal Server Error
-```json
-{
-  "timestamp": "2024-01-15T10:30:00Z",
-  "status": 500,
-  "error": "Internal Server Error",
-  "message": "Ocorreu um erro inesperado"
-}
-```
+- **Controllers** - Endpoints REST e roteamento de requisições
+- **Services** - Lógica de negócio e operações de domínio
+- **Repositories** - Camada de acesso a dados (JPA)
+- **DTOs** - Objetos de transferência de dados para contratos de API
+- **Models** - Classes de entidade representando objetos de domínio
+- **Security** - Configuração de JWT e autenticação
+- **Exception Handling** - Tratamento centralizado de erros
 
 ## Desenvolvimento
 
@@ -669,75 +681,79 @@ mvn clean install
 ### Executando Testes
 
 ```bash
-# Executar todos os testes
+# Todos os testes
 mvn test
 
-# Executar classe de teste específica
+# Classe de teste específica
 mvn test -Dtest=UserServiceTest
 
-# Executar testes com cobertura
+# Com relatório de cobertura
 mvn test jacoco:report
 ```
 
-### Executando com Ferramentas de Desenvolvimento
+### Ferramentas de Desenvolvimento
+
+O projeto inclui Spring Boot DevTools para recarga automática durante o desenvolvimento.
 
 ```bash
-# Executar com Spring Boot DevTools para auto-reload
 mvn spring-boot:run
 ```
 
-Alterações em arquivos Java serão automaticamente recompiladas e o aplicativo será reiniciado.
+Qualquer alteração em arquivos Java será automaticamente recompilada e a aplicação reiniciada.
 
 ## Resolução de Problemas
 
 ### Problemas de Conexão com PostgreSQL
 
-Se você encontrar erros de conexão:
+**Verifique se PostgreSQL está executando:**
+```bash
+# Windows
+Get-Service | grep postgres
 
-1. Verifique se PostgreSQL está executando:
-   ```bash
-   # Windows (PowerShell)
-   Get-Service | grep postgres
-   
-   # macOS/Linux
-   sudo systemctl status postgresql
-   ```
+# macOS/Linux
+sudo systemctl status postgresql
+```
 
-2. Verifique se o banco de dados existe:
-   ```bash
-   psql -U postgres -l | grep sonata
-   ```
+**Verifique se o banco de dados existe:**
+```bash
+psql -U postgres -l | grep sonata
+```
 
-3. Verifique as variáveis de ambiente:
-   ```bash
-   echo $env:USER_DB
-   echo $env:PASSWORD_DB
-   ```
+**Teste a conexão:**
+```bash
+psql -U postgres -d sonata -c "SELECT 1"
+```
 
 ### Porta Já em Uso
 
 Se a porta 8081 já está em uso:
 
-1. Encontre o processo usando a porta:
-   ```bash
-   # Windows
-   netstat -ano | findstr :8081
-   
-   # macOS/Linux
-   lsof -i :8081
-   ```
+```bash
+# Encontre o processo usando a porta
+# Windows
+netstat -ano | findstr :8081
 
-2. Altere a porta em `application.properties`:
-   ```properties
-   server.port=8082
-   ```
+# macOS/Linux
+lsof -i :8081
+```
+
+Altere a porta em `application.properties`:
+```properties
+server.port=8082
+```
+
+### Problemas com Token JWT
+
+- Certifique-se de que a variável de ambiente `API_SECURITY_TOKEN_SECRET` está definida
+- Formato do token no header: `Authorization: Bearer <token>`
+- Verifique o tempo de expiração do token nos logs
 
 ## Contribuindo
 
 1. Faça um Fork do repositório
-2. Crie uma branch de funcionalidade (`git checkout -b feature/MinhaFuncionalidade`)
-3. Commit suas mudanças (`git commit -m 'Adicionar MinhaFuncionalidade'`)
-4. Push para a branch (`git push origin feature/MinhaFuncionalidade`)
+2. Crie uma branch de funcionalidade (`git checkout -b feature/minha-feature`)
+3. Commit suas mudanças (`git commit -m 'Adicionar minha feature'`)
+4. Push para a branch (`git push origin feature/minha-feature`)
 5. Abra um Pull Request
 
 ## Licença
@@ -748,14 +764,14 @@ Este projeto está licenciado sob a Licença MIT - consulte o arquivo LICENSE pa
 
 Para problemas ou dúvidas:
 - Abra uma issue no GitHub
-- Entre em contato com os mantenedores
+- Consulte a documentação existente e exemplos
 
 ## Versão
 
 **Versão Atual:** 0.0.1-SNAPSHOT
 
-**Última Atualização:** 2024
+**Última Atualização:** 2025
 
 ---
 
-**Construído com ❤️ por [golfettozh](https://github.com/golfettozh)**
+**Desenvolvido com ❤️ por [golfettozh](https://github.com/golfettozh)**
